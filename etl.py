@@ -21,51 +21,51 @@ def process_song_file(cur, filepath):
         # insert song record
         song_data = (song_id, title, artist_id, year, duration)
         cur.execute(song_table_insert, song_data)
-         
-    
-
 
 def process_log_file(cur, filepath):
-    pass
-    # # open log file
-    # df = 
 
-    # # filter by NextSong action
-    # df = 
-
-    # # convert timestamp column to datetime
-    # t = 
+    # open log file
+    df = pd.read_json(filepath, lines=True)
     
-    # # insert time data records
-    # time_data = 
-    # column_labels = 
-    # time_df = 
+    # filter by NextSong action
+    df = df[df['page'] == "NextSong"].astype({'ts': 'datetime64[ms]'})
 
-    # for i, row in time_df.iterrows():
-    #     cur.execute(time_table_insert, list(row))
+    # convert timestamp column to datetime
+    t = pd.Series(df['ts'], index = df.index)
+    
+    # insert time data records
+    column_labels = ["timestamp", "hour", "day", "weekofyear", "month", "year", "weekday"]
+    time_data = []
+    for data in t:
+        time_data.append([data, data.hour, data.day, data.weekofyear, data.month, data.year, data.day_name()])
 
-    # # load user table
-    # user_df = 
+    time_df = pd.DataFrame.from_records(data = time_data, columns = column_labels)
 
-    # # insert user records
-    # for i, row in user_df.iterrows():
-    #     cur.execute(user_table_insert, row)
+    for i, row in time_df.iterrows():
+        cur.execute(time_table_insert, list(row))
 
-    # # insert songplay records
-    # for index, row in df.iterrows():
+    # load user table
+    user_df = df[['userId', 'firstName', 'lastName', 'gender', 'level']]
+
+    # insert user records
+    for i, row in user_df.iterrows():
+        cur.execute(user_table_insert, row)
+
+    # insert songplay records
+    for index, row in df.iterrows():
         
-    #     # get songid and artistid from song and artist tables
-    #     cur.execute(song_select, (row.song, row.artist, row.length))
-    #     results = cur.fetchone()
+        # get songid and artistid from song and artist tables
+        cur.execute(song_select, (row.song, row.artist, row.length))
+        results = cur.fetchone()
         
-    #     if results:
-    #         songid, artistid = results
-    #     else:
-    #         songid, artistid = None, None
+        if results:
+            songid, artistid = results
+        else:
+            songid, artistid = None, None
 
-    #     # insert songplay record
-    #     songplay_data = 
-    #     cur.execute(songplay_table_insert, songplay_data)
+        # insert songplay record
+        songplay_data = (row.ts, row.userId, row.level, songid, artistid, row.sessionId, row.location, row.userAgent)
+        cur.execute(songplay_table_insert, songplay_data)
 
 
 def process_data(cur, conn, filepath, func):
