@@ -4,7 +4,6 @@ import psycopg2
 import pandas as pd
 from sql_queries import *
 
-
 def process_song_file(cur, filepath):
     # open song file
     df = pd.DataFrame([pd.read_json(filepath, typ='series', convert_dates=False)])
@@ -21,6 +20,7 @@ def process_song_file(cur, filepath):
         # insert song record
         song_data = (song_id, title, artist_id, year, duration)
         cur.execute(song_table_insert, song_data)
+
 
 def process_log_file(cur, filepath):
 
@@ -68,6 +68,7 @@ def process_log_file(cur, filepath):
         cur.execute(songplay_table_insert, songplay_data)
 
 
+
 def process_data(cur, conn, filepath, func):
     # get all files matching extension from directory
     all_files = []
@@ -80,9 +81,6 @@ def process_data(cur, conn, filepath, func):
     num_files = len(all_files)
     print('{} files found in {}'.format(num_files, filepath))
 
-    print(all_files)
-    print(num_files)
-
     # iterate over files and process
     for i, datafile in enumerate(all_files, 1):
         func(cur, datafile)
@@ -91,7 +89,7 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
-    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=testuser")
+    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
 
     process_data(cur, conn, filepath='data/song_data', func=process_song_file)
